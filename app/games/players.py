@@ -4,6 +4,8 @@ from .game import Game
 
 
 class RandomPlayer:
+    """合法手の中から一様ランダムにactionを選択するプレイヤー"""
+
     def __init__(self, game: Game):
         self.game = game
 
@@ -15,6 +17,8 @@ class RandomPlayer:
 
 
 class HumanPlayer:
+    """inputにより人間が直接手を指定するプレイヤー"""
+
     def __init__(self, game: Game):
         self.game = game
 

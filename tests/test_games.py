@@ -1,6 +1,10 @@
-from games.tictactoe import TicTacToeGame
-from games.arena import Arena
-from games.players import RandomPlayer
+from app.games.tictactoe import TicTacToeGame
+from app.games.arena import Arena
+from app.games.players import RandomPlayer
+
+
+# ゲームが正しくプレイできているか
+# コマンドで実行し正しくプレイできているかを確認する必要がある
 
 
 def test_tictactoe():
