@@ -1,6 +1,7 @@
 import numpy as np
 
 from .game import Game
+from ..alpha_zero.mcts import MCTS
 
 
 class RandomPlayer:
@@ -27,3 +28,15 @@ class HumanPlayer:
         while not self.game.is_valid(board, 1, a):
             a = int(input())
         return a
+
+
+class MCTSPlayer:
+    def __init__(self, mcts: MCTS, n):
+        self.mcts = mcts
+        self.n = n
+
+    def play(self, board):
+        for _ in range(self.n):
+            self.mcts.search(board, 1)
+        s = self.mcts.game.hash(board, 1)
+        return np.argmax(self.mcts.N[s])
