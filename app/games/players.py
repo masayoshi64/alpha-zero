@@ -31,12 +31,8 @@ class HumanPlayer:
 
 
 class MCTSPlayer:
-    def __init__(self, mcts: MCTS, n):
+    def __init__(self, mcts: MCTS):
         self.mcts = mcts
-        self.n = n
 
     def play(self, board):
-        for _ in range(self.n):
-            self.mcts.search(board, 1)
-        s = self.mcts.game.hash(board, 1)
-        return np.argmax(self.mcts.N[s])
+        return np.argmax(self.mcts.get_action_prob(board))
