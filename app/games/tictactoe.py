@@ -4,8 +4,8 @@ from .game import Game
 
 
 class TicTacToeGame(Game):
-    """n目並べ
-    """
+    """n目並べ"""
+
     def __init__(self, n):
         """
         Args:
@@ -107,3 +107,9 @@ class TicTacToeGame(Game):
 
     def hash(self, board, player):
         return (str(board), player)
+
+    def get_height(self) -> int:
+        return self.n
+
+    def get_width(self) -> int:
+        return self.n

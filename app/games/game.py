@@ -100,3 +100,19 @@ class Game:
             Hashable: ハッシュ可能なクラス
         """
         raise NotImplementedError()
+
+    def get_height(self) -> int:
+        """盤の高さを返す
+
+        Returns:
+            int: 高さ
+        """
+        raise NotImplementedError()
+
+    def get_width(self) -> int:
+        """盤の幅を返す
+
+        Returns:
+            int: 幅
+        """
+        raise NotImplementedError()
