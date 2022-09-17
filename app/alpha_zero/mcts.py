@@ -1,19 +1,27 @@
 from math import sqrt
+from typing import List
+
+import torch
+import torch.nn as nn
 
 from ..games.game import Game
 
 
 class MCTS:
-    def __init__(self, game: Game, net, alpha):
+    def __init__(
+        self, game: Game, model: nn.Module, alpha: float, tau: float, num_search: int
+    ):
         self.game = game
         self.visited = set()
-        self.net = net
+        self.model = model
         self.Q = dict()
         self.N = dict()
         self.P = dict()
         self.alpha = alpha
+        self.tau = tau
+        self.num_search = num_search
 
-    def search(self, board, player) -> float:
+    def search(self, board: List[List[float]], player: int) -> float:
         if self.game.get_game_ended(board, player):
             return self.game.get_reward(board, player)
 
@@ -22,7 +30,9 @@ class MCTS:
         if s not in self.visited:
             self.visited.add(s)
             cboard = self.game.get_canonical_form(board, player)
-            (p, v) = self.net.predict(cboard)
+            p, v = self.model(torch.Tensor(cboard))
+            p = p.detach().numpy()[0].tolist()
+            v = v.detach().numpy()[0, 0]
             self.P[s] = p
             self.Q[s] = [0] * action_size
             self.N[s] = [0] * action_size
@@ -48,3 +58,15 @@ class MCTS:
         ) / (self.N[s][best_action] + 1)
         self.N[s][best_action] += 1
         return v
+
+    def get_action_prob(self, board: List[List[float]]) -> List[float]:
+        for i in range(self.num_search):
+            self.search(board, 1)
+        s = self.game.hash(board, 1)
+        p = []
+        for a in range(self.game.get_action_size()):
+            p.append(self.N[s][a] ** (1 / self.tau))
+        sm = sum(p)
+        for a in range(len(p)):
+            p[a] /= sm
+        return p
