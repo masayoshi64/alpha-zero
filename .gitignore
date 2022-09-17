@@ -2,3 +2,4 @@
 .pytest_cache
 __pycache__
 ltex.dictionary.en-US.txt
+models
