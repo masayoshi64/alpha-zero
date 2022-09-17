@@ -1,9 +1,10 @@
 import argparse
 
+import torch
+
 from app.games.arena import Arena
 from app.games.tictactoe import TicTacToeGame
 from app.games.players import RandomPlayer, HumanPlayer, MCTSPlayer
-from app.alpha_zero.nnet import ConstantNet
 from app.alpha_zero.mcts import MCTS
 
 
@@ -18,9 +19,9 @@ def main():
     if player_type == "random":
         player2 = RandomPlayer(game)
     elif player_type == "mcts":
-        net = ConstantNet(game)
-        mcts = MCTS(game, net, 0.1)
-        player2 = MCTSPlayer(mcts, 1000)
+        model = torch.load("models/model.pt")
+        mcts = MCTS(game, model, 0.1, 1, 10)
+        player2 = MCTSPlayer(mcts)
     else:
         raise ValueError(f"Invalid player type: {player_type}")
 
