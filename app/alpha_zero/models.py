@@ -5,6 +5,7 @@ import torch
 from ..games.game import Game
 
 
+# 常に一様分布と0を返すモデル
 class ConstantModel(nn.Module):
     def __init__(self, game: Game):
         super().__init__()
@@ -15,6 +16,7 @@ class ConstantModel(nn.Module):
         return torch.Tensor([[1 / action_size] * action_size]), torch.Tensor([[0]])
 
 
+# 1層ニューラルネット
 class OneLayerModel(nn.Module):
     def __init__(self, game: Game, **args):
         super().__init__()
