@@ -1,9 +1,9 @@
 from app.alpha_zero.trainer import Trainer
-from app.alpha_zero.models import OneLayerModel
+from app.alpha_zero.models import OneLayerModel, ConstantModel
 from app.alpha_zero.mcts import MCTS
 from app.games.arena import Arena
 from app.games.tictactoe import TicTacToeGame
-from app.games.players import RandomPlayer, MCTSPlayer
+from app.games.players import MCTSPlayer
 
 
 def test_trainer():
@@ -12,10 +12,10 @@ def test_trainer():
     model = OneLayerModel(game)
     model = trainer.train(model)
     mcts = MCTS(game, model, 0.1, 1, 10)
+    cmcts = MCTS(game, ConstantModel(game), 0.1, 1, 10)
     player1 = MCTSPlayer(mcts)
-    player2 = RandomPlayer(game)
+    player2 = MCTSPlayer(cmcts)
     arena = Arena(player1.play, player2.play, game)
     r = arena.play_games(50)
-    win_rate = (r + 1) / 2
     # 勝率9割以上
-    assert win_rate > 0.9
+    assert r > 0.5
