@@ -3,3 +3,4 @@
 __pycache__
 ltex.dictionary.en-US.txt
 models
+wandb
