@@ -11,7 +11,7 @@ import wandb
 
 from ..games.arena import Arena
 from ..games.game import Game
-from ..games.players import RandomPlayer
+from ..games.players import RandomPlayer, MCTSPlayer
 from .mcts import MCTS
 
 
@@ -73,6 +73,33 @@ class Trainer:
         self.tau = tau
         self.num_search = num_search
         self.use_wandb = use_wandb
+
+    def eval(self, model1, model2):
+        pmcts = MCTS(self.game, model1, self.alpha, self.tau, self.num_search)
+        nmcts = MCTS(self.game, model2, self.alpha, self.tau, self.num_search)
+        player1 = MCTSPlayer(pmcts)
+        player2 = MCTSPlayer(nmcts)
+        arena = Arena(
+            player1.play,
+            player2.play,
+            self.game,
+        )
+        r = arena.play_game()
+
+        pmcts = MCTS(self.game, model1, self.alpha, self.tau, self.num_search)
+        nmcts = MCTS(self.game, model2, self.alpha, self.tau, self.num_search)
+        player1 = MCTSPlayer(pmcts)
+        player2 = MCTSPlayer(nmcts)
+        arena = Arena(
+            player2.play,
+            player1.play,
+            self.game,
+        )
+        r += arena.play_game()
+
+        r /= 2
+
+        return r
 
     def play_episode(
         self, model: nn.Module
@@ -151,7 +178,7 @@ class Trainer:
                 lambda x: np.argmax(nmcts.get_action_prob(x)),
                 self.game,
             )
-            r = arena.play_games(self.num_game)
+            r = np.average([self.eval(model, new_model) for _ in range(self.num_game)])
             logging.info(f"average reward: {r}")
 
             # 平均報酬がr_threshより高ければモデルを更新
