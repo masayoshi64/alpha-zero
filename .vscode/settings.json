@@ -5,6 +5,11 @@
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": [
+        "--max-line-length",
+        "99",
+        "--ignore=E203,W503,W504"
+    ],
     "python.formatting.provider": "black",
     "autoDocstring.docstringFormat": "google",
     "python.testing.pytestArgs": [
@@ -13,6 +18,8 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "cSpell.words": [
+        "cboard",
+        "MCTS",
         "tictactoe"
     ],
 }
