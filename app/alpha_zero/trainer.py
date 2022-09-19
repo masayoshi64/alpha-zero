@@ -7,9 +7,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
+import wandb
 
 from ..games.arena import Arena
 from ..games.game import Game
+from ..games.players import RandomPlayer
 from .mcts import MCTS
 
 
@@ -44,6 +46,7 @@ class Trainer:
         alpha: float,
         tau: float,
         num_search: int,
+        use_wandb: float = False,
     ):
         """
         Args:
@@ -57,6 +60,7 @@ class Trainer:
             alpha (float): MCTSのalpha
             tau (float): MCTSのtau
             num_search (int): MCTSのnum_search
+            use_wandb (float, optional): wandbを使うならTrue
         """
         self.game = game
         self.num_iter = num_iter
@@ -68,6 +72,7 @@ class Trainer:
         self.alpha = alpha
         self.tau = tau
         self.num_search = num_search
+        self.use_wandb = use_wandb
 
     def play_episode(
         self, model: nn.Module
@@ -147,6 +152,18 @@ class Trainer:
             if r > self.r_thresh:
                 logging.info("model updated")
                 model = new_model
+
+            # ランダムモデルと対戦させ評価
+            if self.use_wandb:
+                random_player = RandomPlayer(self.game)
+                mcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
+                arena = Arena(
+                    lambda x: np.argmax(mcts.get_action_prob(x)),
+                    random_player.play,
+                    self.game,
+                )
+                r = arena.play_games(self.num_game)
+                wandb.log({"ave_reward": r})
 
         return model
 
