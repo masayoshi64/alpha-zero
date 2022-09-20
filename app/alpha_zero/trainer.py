@@ -131,12 +131,29 @@ class Trainer:
             dataset = AlphaZeroDataset(experiences)
             dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
             for epoch in range(self.num_epoch):
+                loss_p_ave = 0
+                loss_v_ave = 0
+                cnt = 0
                 for x, (p, v) in dataloader:
                     p_pred, v_pred = new_model(x)
-                    loss = self.loss_p(p, p_pred) + self.loss_v(v, v_pred)
+                    loss_p = self.loss_p(p, p_pred)
+                    loss_v = self.loss_v(v, v_pred)
+                    loss = loss_p + loss_v
                     loss.backward()
                     optimizer.step()
                     optimizer.zero_grad()
+
+                    # 平均損失を計算
+                    loss_p_ave += loss_p * v.size()[0]
+                    loss_v_ave += loss_v * v.size()[0]
+                    cnt += v.size()[0]
+
+                # 平均損失を表示
+                loss_p_ave /= cnt
+                loss_v_ave /= cnt
+                logging.info(f"loss for p: {loss_p_ave}, loss for v: {loss_v_ave}")
+                if self.use_wandb:
+                    wandb.log({"loss": {loss_p_ave + loss_v_ave}})
 
             # modelと対戦時のnew_modelの平均報酬を計算
             pmcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
