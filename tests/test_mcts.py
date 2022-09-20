@@ -1,8 +1,8 @@
 from app.alpha_zero.mcts import MCTS
 from app.games.tictactoe import TicTacToeGame
-from app.games.arena import Arena
 from app.games.players import RandomPlayer, MCTSPlayer
 from app.alpha_zero.models import ConstantModel
+from app.alpha_zero.utils import eval_player
 
 
 # （ほぼ）完全読みでランダムプレイヤーに9割勝てるか
@@ -15,10 +15,5 @@ def test_mcts():
 
     random_player = RandomPlayer(game)
 
-    arena = Arena(mcts_player, random_player, game)
-    r = arena.play_games(20)
-    arena = Arena(random_player, mcts_player, game)
-    r += -arena.play_games(20)
-    r /= 2
-
+    r = eval_player(mcts_player, random_player, game, 20)
     assert r > 0.9
