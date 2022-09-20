@@ -11,7 +11,7 @@ import wandb
 
 from ..games.arena import Arena
 from ..games.game import Game
-from ..games.players import RandomPlayer
+from ..games.players import MCTSPlayer, RandomPlayer
 from .mcts import MCTS
 
 
@@ -140,9 +140,11 @@ class Trainer:
             # modelと対戦時のnew_modelの平均報酬を計算
             pmcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
             nmcts = MCTS(self.game, new_model, self.alpha, self.tau, self.num_search)
+            player1 = MCTSPlayer(pmcts)
+            player2 = MCTSPlayer(nmcts)
             arena = Arena(
-                lambda x: np.argmax(pmcts.get_action_prob(x)),
-                lambda x: np.argmax(nmcts.get_action_prob(x)),
+                player1,
+                player2,
                 self.game,
             )
             r = arena.play_games(self.num_game)
@@ -157,9 +159,10 @@ class Trainer:
             if self.use_wandb:
                 random_player = RandomPlayer(self.game)
                 mcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
+                player = MCTSPlayer(mcts)
                 arena = Arena(
-                    lambda x: np.argmax(mcts.get_action_prob(x)),
-                    random_player.play,
+                    player,
+                    random_player,
                     self.game,
                 )
                 r = arena.play_games(self.num_game)

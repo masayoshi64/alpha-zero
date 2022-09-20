@@ -116,3 +116,9 @@ class MCTS:
             p[a] /= sm
 
         return p
+
+    def reset(self) -> None:
+        self.visited = set()
+        self.Q = dict()
+        self.N = dict()
+        self.P = dict()
