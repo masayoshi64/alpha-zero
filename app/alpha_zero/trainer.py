@@ -27,7 +27,7 @@ class AlphaZeroDataset(Dataset):
     def __getitem__(self, index):
         return torch.Tensor(self.boards[index]), (
             torch.Tensor(self.p[index]),
-            self.v[index],
+            torch.Tensor([self.v[index]]),
         )
 
     def __len__(self):
