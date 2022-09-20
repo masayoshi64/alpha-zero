@@ -48,7 +48,8 @@ class MCTSPlayer(Player):
         self.mcts = mcts
 
     def play(self, board):
-        return np.argmax(self.mcts.get_action_prob(board))
+        p = self.mcts.get_action_prob(board)
+        return np.random.choice(list(range(len(p))), p=p)
 
     def reset(self):
         self.mcts.reset()
