@@ -175,7 +175,10 @@ class Trainer:
         Returns:
             torch.Tensor: クロスエントロピー
         """
-        return torch.sum(p * torch.log(p_pred)) / p.size()[0]
+        EPS = 1e-5
+        return (
+            torch.sum(p * (torch.log(p + EPS) - torch.log(p_pred + EPS))) / p.size()[0]
+        )
 
     def loss_v(self, v: torch.Tensor, v_pred: torch.Tensor) -> torch.Tensor:
         """評価値vに関する損失
