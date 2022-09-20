@@ -17,5 +17,8 @@ def test_mcts():
 
     arena = Arena(mcts_player, random_player, game)
     r = arena.play_games(20)
+    arena = Arena(random_player, mcts_player, game)
+    r += -arena.play_games(20)
+    r /= 2
 
     assert r > 0.9
