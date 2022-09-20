@@ -1,3 +1,4 @@
+from collections import deque
 import copy
 import logging
 from typing import Tuple, List
@@ -118,16 +119,17 @@ class Trainer:
             nn.Module: 学習済みモデル
         """
         model = copy.deepcopy(model_)
+        experiences = deque(maxlen=500)
         for i in tqdm(range(self.num_iter)):
-            experiences = []
             # 自己対戦を行う
             for episode in range(self.num_episode):
-                experiences += self.play_episode(model)
+                experiences.extend(self.play_episode(model))
 
             # new_modelに対して学習を行う
             new_model = copy.deepcopy(model)
             optimizer = torch.optim.SGD(new_model.parameters(), self.lr)
-            dataset = AlphaZeroDataset(experiences)
+            logging.info(len(experiences))
+            dataset = AlphaZeroDataset(list(experiences))
             dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
             for epoch in range(self.num_epoch):
                 loss_p_ave = 0
