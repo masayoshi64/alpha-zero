@@ -25,7 +25,7 @@ def main():
     else:
         raise ValueError(f"Invalid player type: {player_type}")
 
-    arena = Arena(player1.play, player2.play, game)
+    arena = Arena(player1, player2, game)
     arena.play_game(verbose=1)
 
 
