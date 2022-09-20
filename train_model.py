@@ -19,10 +19,12 @@ def main():
         "alpha": 0.1,
         "tau": 1.0,
         "num_search": 10,
+        "use_wandb": False,
     }
-    wandb.init(project="alpha-zero", config=config)
+    if config["use_wandb"]:
+        wandb.init(project="alpha-zero", config=config)
     game = TicTacToeGame(3)
-    trainer = Trainer(game, use_wandb=True, **config)
+    trainer = Trainer(game, **config)
     model = OneLayerModel(game)
     model = trainer.train(model)
     torch.save(model, "models/model.pt")
