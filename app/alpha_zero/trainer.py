@@ -14,6 +14,8 @@ from ..games.game import Game
 from ..games.players import RandomPlayer, MCTSPlayer
 from .mcts import MCTS
 
+EPS = 1e-5
+
 
 class AlphaZeroDataset(Dataset):
     def __init__(self, experiences: List[Tuple[List[List[float]], List[float], float]]):
@@ -210,7 +212,7 @@ class Trainer:
         Returns:
             torch.Tensor: クロスエントロピー
         """
-        return torch.sum(p * torch.log(p_pred)) / p.size()[0]
+        return torch.sum(p * torch.log(p_pred + EPS)) / p.size()[0]
 
     def loss_v(self, v: torch.Tensor, v_pred: torch.Tensor) -> torch.Tensor:
         """評価値vに関する損失
