@@ -4,7 +4,7 @@ import torch
 import wandb
 
 from app.alpha_zero.trainer import Trainer
-from app.alpha_zero.models import OneLayerModel
+from app.alpha_zero.models import TicTacToeModel
 from app.games.tictactoe import TicTacToeGame
 
 
@@ -25,7 +25,7 @@ def main():
         wandb.init(project="alpha-zero", config=config)
     game = TicTacToeGame(3)
     trainer = Trainer(game, **config)
-    model = OneLayerModel(game)
+    model = TicTacToeModel(game)
     model = trainer.train(model)
     torch.save(model, "models/model.pt")
 
