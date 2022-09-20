@@ -9,10 +9,10 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import wandb
 
-from ..games.arena import Arena
 from ..games.game import Game
 from ..games.players import MCTSPlayer, RandomPlayer
 from .mcts import MCTS
+from .utils import eval_player
 
 
 class AlphaZeroDataset(Dataset):
@@ -140,14 +140,9 @@ class Trainer:
             # modelと対戦時のnew_modelの平均報酬を計算
             pmcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
             nmcts = MCTS(self.game, new_model, self.alpha, self.tau, self.num_search)
-            player1 = MCTSPlayer(pmcts)
-            player2 = MCTSPlayer(nmcts)
-            arena = Arena(
-                player1,
-                player2,
-                self.game,
-            )
-            r = arena.play_games(self.num_game)
+            prev_player = MCTSPlayer(pmcts)
+            next_player = MCTSPlayer(nmcts)
+            r = eval_player(next_player, prev_player, self.game, self.num_game)
             logging.info(f"average reward: {r}")
 
             # 平均報酬がr_threshより高ければモデルを更新
@@ -156,16 +151,12 @@ class Trainer:
                 model = new_model
 
             # ランダムモデルと対戦させ評価
+            random_player = RandomPlayer(self.game)
+            mcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
+            player = MCTSPlayer(mcts)
+            r = eval_player(player, random_player, self.game, self.num_game)
+            logging.info(f"average reward(v.s. random: {r}")
             if self.use_wandb:
-                random_player = RandomPlayer(self.game)
-                mcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
-                player = MCTSPlayer(mcts)
-                arena = Arena(
-                    player,
-                    random_player,
-                    self.game,
-                )
-                r = arena.play_games(self.num_game)
                 wandb.log({"ave_reward": r})
 
         return model
