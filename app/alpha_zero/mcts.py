@@ -60,7 +60,7 @@ class MCTS:
             return v
 
         # UCBが最大となるactionを選択
-        best_action = 0
+        best_action = None
         max_ucb = -float("inf")
         Ns = sum(self.N[s])
 
@@ -72,6 +72,8 @@ class MCTS:
                 if ucb > max_ucb:
                     max_ucb = ucb
                     best_action = action
+
+        assert best_action is not None
 
         # 次の状態を取得
         next_board, next_player = self.game.get_next_state(board, player, best_action)
