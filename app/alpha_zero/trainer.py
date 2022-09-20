@@ -10,9 +10,10 @@ from tqdm import tqdm
 import wandb
 
 from ..games.game import Game
-from ..games.players import MCTSPlayer, RandomPlayer
+from ..games.players import MCTSPlayer
 from .mcts import MCTS
 from .utils import eval_player
+from .models import ConstantModel
 
 
 class AlphaZeroDataset(Dataset):
@@ -150,8 +151,11 @@ class Trainer:
                 logging.info("model updated")
                 model = new_model
 
-            # ランダムモデルと対戦させ評価
-            random_player = RandomPlayer(self.game)
+            # 定数モデルを用いたmctsと対戦させ評価
+            const_model = ConstantModel(self.game)
+            random_player = MCTSPlayer(
+                MCTS(self.game, const_model, self.alpha, self.tau, self.num_search)
+            )
             mcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
             player = MCTSPlayer(mcts)
             r = eval_player(player, random_player, self.game, self.num_game)
