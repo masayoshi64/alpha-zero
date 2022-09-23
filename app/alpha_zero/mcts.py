@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 from ..games.game import Game
+from .utils import get_board_view
 
 
 class MCTS:
@@ -51,7 +52,7 @@ class MCTS:
         if s not in self.visited:
             self.visited.add(s)
             cboard = self.game.get_canonical_form(board, player)
-            p, v = self.model(torch.Tensor(cboard))
+            p, v = self.model(torch.Tensor(get_board_view(cboard)))
             p = p.detach().numpy()[0].tolist()
             v = v.detach().numpy()[0, 0]
             self.P[s] = p

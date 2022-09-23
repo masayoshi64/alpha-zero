@@ -44,14 +44,14 @@ class TicTacToeModel(nn.Module):
         self.width = game.get_width()
         self.action_size = game.get_action_size()
         hidden_size = 100
-        self.fc = nn.Linear(self.height * self.width, hidden_size)
+        self.fc = nn.Linear(self.height * self.width * 2, hidden_size)
         self.fc_p = nn.Linear(hidden_size, self.action_size)
         self.fc_v = nn.Linear(hidden_size, 1)
         self.softmax = nn.Softmax(dim=1)
         self.tanh = nn.Tanh()
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = x.view(-1, self.height * self.width)
+        x = x.view(-1, self.height * self.width * 2)
         x = self.fc(x)
         p = self.fc_p(x)
         p = self.softmax(p)

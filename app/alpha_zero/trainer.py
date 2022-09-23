@@ -13,7 +13,7 @@ import wandb
 from ..games.game import Game
 from ..games.players import MCTSPlayer
 from .mcts import MCTS
-from .utils import eval_player
+from .utils import eval_player, get_board_view
 
 
 class AlphaZeroDataset(Dataset):
@@ -25,7 +25,7 @@ class AlphaZeroDataset(Dataset):
         self.boards, self.p, self.v = zip(*experiences)
 
     def __getitem__(self, index):
-        return torch.Tensor(self.boards[index]), (
+        return torch.Tensor(get_board_view(self.boards[index])), (  # type: ignore
             torch.Tensor(self.p[index]),
             torch.Tensor([self.v[index]]),
         )
@@ -119,7 +119,7 @@ class Trainer:
             nn.Module: 学習済みモデル
         """
         model = copy.deepcopy(model_)
-        experiences = deque(maxlen=500)
+        experiences = deque(maxlen=30000)
         for i in tqdm(range(self.num_iter)):
             # 自己対戦を行う
             for episode in range(self.num_episode):

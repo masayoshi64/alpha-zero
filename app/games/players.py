@@ -1,20 +1,8 @@
-from typing import List
-
 import numpy as np
 
 from .game import Game
 from ..alpha_zero.mcts import MCTS
-
-
-class Player:
-    def __init__(self):
-        pass
-
-    def play(self, board: List[List[float]]) -> int:
-        raise NotImplementedError()
-
-    def reset(self) -> None:
-        return
+from .player_base import Player
 
 
 class RandomPlayer(Player):

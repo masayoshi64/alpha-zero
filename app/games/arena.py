@@ -1,7 +1,7 @@
 import logging
 
 from .game import Game
-from .players import Player
+from .player_base import Player
 
 
 class Arena:
