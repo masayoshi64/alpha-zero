@@ -11,10 +11,10 @@ from app.games.tictactoe import TicTacToeGame
 def main():
     config = {
         "num_iter": 20,
-        "num_episode": 10,
+        "num_episode": 500,
         "num_epoch": 100,
         "num_game": 100,
-        "lr": 0.01,
+        "lr": 0.002,
         "r_thresh": 0,
         "alpha": 0.1,
         "tau": 1.0,
