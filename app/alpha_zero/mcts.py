@@ -3,8 +3,10 @@ from typing import List
 
 import torch
 import torch.nn as nn
+import numpy as np
 
 from ..games.game import Game
+from .utils import get_board_view
 
 
 class MCTS:
@@ -51,7 +53,7 @@ class MCTS:
         if s not in self.visited:
             self.visited.add(s)
             cboard = self.game.get_canonical_form(board, player)
-            p, v = self.model(torch.Tensor(cboard))
+            p, v = self.model(torch.Tensor(get_board_view(cboard)))
             p = p.detach().numpy()[0].tolist()
             v = v.detach().numpy()[0, 0]
             self.P[s] = p
@@ -105,8 +107,18 @@ class MCTS:
             self.search(board, 1)
         s = self.game.hash(board, 1)
 
-        # 行動確率を計算
         p = []
+
+        # tau == 0ならargmaxを返す
+        if self.tau == 0:
+            for a in range(self.game.get_action_size()):
+                p.append(self.N[s][a])
+            best_action = np.argmax(p)
+            p = [0.0] * len(p)
+            p[best_action] = 1
+            return p
+
+        # 行動確率を計算
         for a in range(self.game.get_action_size()):
             p.append(self.N[s][a] ** (1 / self.tau))
 
@@ -116,3 +128,9 @@ class MCTS:
             p[a] /= sm
 
         return p
+
+    def reset(self) -> None:
+        self.visited = set()
+        self.Q = dict()
+        self.N = dict()
+        self.P = dict()

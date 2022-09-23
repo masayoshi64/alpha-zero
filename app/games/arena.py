@@ -1,13 +1,13 @@
 import logging
-from typing import Callable
 
 from .game import Game
+from .player_base import Player
 
 
 class Arena:
     """ゲームを実行するクラス"""
 
-    def __init__(self, player1: Callable, player2: Callable, game: Game):
+    def __init__(self, player1: Player, player2: Player, game: Game):
         """
         Args:
             player1 (Callable): プレイヤー1のアクションを返す関数
@@ -27,6 +27,11 @@ class Arena:
         Returns:
             float: プレイヤー1から見た報酬
         """
+
+        # プレイヤーをリセット
+        self.player1.reset()
+        self.player2.reset()
+
         board = self.game.get_initial_board()
         cur_player = 1
         turn = 1
@@ -35,7 +40,7 @@ class Arena:
             if verbose:
                 print(f"Turn {turn}, player {cur_player}")
                 print(*board, sep="\n")
-            action = players[cur_player](
+            action = players[cur_player].play(
                 self.game.get_canonical_form(board, cur_player)
             )
             # 合法種でなければエラー

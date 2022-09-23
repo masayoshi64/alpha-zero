@@ -14,7 +14,7 @@ def test_trainer():
     mcts = MCTS(game, model, 0.1, 1, 10)
     player1 = MCTSPlayer(mcts)
     player2 = RandomPlayer(game)
-    arena = Arena(player1.play, player2.play, game)
+    arena = Arena(player1, player2, game)
     r = arena.play_games(50)
     win_rate = (r + 1) / 2
     # 勝率9割以上

@@ -1,3 +1,4 @@
+from collections import deque
 import copy
 import logging
 from typing import Tuple, List
@@ -9,10 +10,10 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import wandb
 
-from ..games.arena import Arena
 from ..games.game import Game
-from ..games.players import RandomPlayer
+from ..games.players import MCTSPlayer
 from .mcts import MCTS
+from .utils import eval_player, get_board_view
 
 
 class AlphaZeroDataset(Dataset):
@@ -24,9 +25,9 @@ class AlphaZeroDataset(Dataset):
         self.boards, self.p, self.v = zip(*experiences)
 
     def __getitem__(self, index):
-        return torch.Tensor(self.boards[index]), (
+        return torch.Tensor(get_board_view(self.boards[index])), (  # type: ignore
             torch.Tensor(self.p[index]),
-            self.v[index],
+            torch.Tensor([self.v[index]]),
         )
 
     def __len__(self):
@@ -118,34 +119,49 @@ class Trainer:
             nn.Module: 学習済みモデル
         """
         model = copy.deepcopy(model_)
+        experiences = deque(maxlen=30000)
         for i in tqdm(range(self.num_iter)):
-            experiences = []
             # 自己対戦を行う
             for episode in range(self.num_episode):
-                experiences += self.play_episode(model)
+                experiences.extend(self.play_episode(model))
 
             # new_modelに対して学習を行う
             new_model = copy.deepcopy(model)
-            optimizer = torch.optim.SGD(new_model.parameters(), self.lr)
-            dataset = AlphaZeroDataset(experiences)
+            optimizer = torch.optim.Adam(new_model.parameters(), self.lr)
+            logging.info(len(experiences))
+            dataset = AlphaZeroDataset(list(experiences))
             dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
             for epoch in range(self.num_epoch):
+                loss_p_ave = 0
+                loss_v_ave = 0
+                cnt = 0
                 for x, (p, v) in dataloader:
                     p_pred, v_pred = new_model(x)
-                    loss = self.loss_p(p, p_pred) + self.loss_v(v, v_pred)
+                    loss_p = self.loss_p(p, p_pred)
+                    loss_v = self.loss_v(v, v_pred)
+                    loss = loss_p + loss_v
                     loss.backward()
                     optimizer.step()
                     optimizer.zero_grad()
 
+                    # 平均損失を計算
+                    loss_p_ave += loss_p * v.size()[0]
+                    loss_v_ave += loss_v * v.size()[0]
+                    cnt += v.size()[0]
+
+                # 平均損失を表示
+                loss_p_ave /= cnt
+                loss_v_ave /= cnt
+                logging.info(f"loss for p: {loss_p_ave}, loss for v: {loss_v_ave}")
+                if self.use_wandb:
+                    wandb.log({"loss": loss_p_ave + loss_v_ave})
+
             # modelと対戦時のnew_modelの平均報酬を計算
             pmcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
             nmcts = MCTS(self.game, new_model, self.alpha, self.tau, self.num_search)
-            arena = Arena(
-                lambda x: np.argmax(pmcts.get_action_prob(x)),
-                lambda x: np.argmax(nmcts.get_action_prob(x)),
-                self.game,
-            )
-            r = arena.play_games(self.num_game)
+            prev_player = MCTSPlayer(pmcts)
+            next_player = MCTSPlayer(nmcts)
+            r = eval_player(next_player, prev_player, self.game, self.num_game)
             logging.info(f"average reward: {r}")
 
             # 平均報酬がr_threshより高ければモデルを更新
@@ -153,16 +169,15 @@ class Trainer:
                 logging.info("model updated")
                 model = new_model
 
-            # ランダムモデルと対戦させ評価
+            # 学習前のモデルを用いたmctsと対戦させ評価
+            init_player = MCTSPlayer(
+                MCTS(self.game, model_, self.alpha, self.tau, self.num_search)
+            )
+            mcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
+            player = MCTSPlayer(mcts)
+            r = eval_player(player, init_player, self.game, self.num_game)
+            logging.info(f"average reward(v.s. random: {r}")
             if self.use_wandb:
-                random_player = RandomPlayer(self.game)
-                mcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
-                arena = Arena(
-                    lambda x: np.argmax(mcts.get_action_prob(x)),
-                    random_player.play,
-                    self.game,
-                )
-                r = arena.play_games(self.num_game)
                 wandb.log({"ave_reward": r})
 
         return model
@@ -177,7 +192,10 @@ class Trainer:
         Returns:
             torch.Tensor: クロスエントロピー
         """
-        return torch.sum(p * torch.log(p_pred)) / p.size()[0]
+        EPS = 1e-5
+        return (
+            torch.sum(p * (torch.log(p + EPS) - torch.log(p_pred + EPS))) / p.size()[0]
+        )
 
     def loss_v(self, v: torch.Tensor, v_pred: torch.Tensor) -> torch.Tensor:
         """評価値vに関する損失
