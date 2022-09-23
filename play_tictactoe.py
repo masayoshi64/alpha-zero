@@ -4,7 +4,7 @@ import torch
 
 from app.games.arena import Arena
 from app.games.tictactoe import TicTacToeGame
-from app.games.players import RandomPlayer, HumanPlayer, MCTSPlayer
+from app.games.players import RandomPlayer, HumanPlayer, MCTSPlayer, AlphaBetaPlayer
 from app.alpha_zero.mcts import MCTS
 
 
@@ -22,6 +22,8 @@ def main():
         model = torch.load("models/model.pt")
         mcts = MCTS(game, model, 0.1, 1, 10)
         player2 = MCTSPlayer(mcts)
+    elif player_type == "alphabeta":
+        player2 = AlphaBetaPlayer(game)
     else:
         raise ValueError(f"Invalid player type: {player_type}")
 
