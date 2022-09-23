@@ -41,3 +41,44 @@ class MCTSPlayer(Player):
 
     def reset(self):
         self.mcts.reset()
+
+
+class AlphaBetaPlayer(Player):
+    def __init__(self, game: Game):
+        self.game = game
+
+    def play(self, board):
+        best_action = 0
+        alpha = -float("inf")
+        beta = float("inf")
+        for action in range(self.game.get_action_size()):
+            if self.game.is_valid(board, 1, action):
+                next_board, next_player = self.game.get_next_state(board, 1, action)
+                if next_player == 1:
+                    score = self.search(next_board, next_player, alpha, beta)
+                else:
+                    score = -self.search(next_board, next_player, -beta, -alpha)
+                if alpha < score:
+                    alpha = score
+                    best_action = action
+        return best_action
+
+    def search(self, board, player, alpha, beta):
+        if self.game.get_game_ended(board, player):
+            return self.game.get_reward(board, player)
+
+        for action in range(self.game.get_action_size()):
+            if self.game.is_valid(board, player, action):
+                next_board, next_player = self.game.get_next_state(
+                    board, player, action
+                )
+                # playerから見たboardの評価値
+                if next_player == player:
+                    score = self.search(next_board, next_player, alpha, beta)
+                else:
+                    score = -self.search(next_board, next_player, -beta, -alpha)
+                # 関心のある値の上限であるbetaをscoreが超えたら打ち切り
+                if beta <= score:
+                    return score
+                alpha = max(alpha, score)
+        return alpha
