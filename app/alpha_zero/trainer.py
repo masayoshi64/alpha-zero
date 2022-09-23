@@ -11,7 +11,7 @@ from tqdm import tqdm
 import wandb
 
 from ..games.game import Game
-from ..games.players import MCTSPlayer
+from ..games.players import MCTSPlayer, RandomPlayer, NeuralNetPlayer
 from .mcts import MCTS
 from .utils import eval_player, get_board_view
 
@@ -174,12 +174,9 @@ class Trainer:
                 model = new_model
 
             # 学習前のモデルを用いたmctsと対戦させ評価
-            init_player = MCTSPlayer(
-                MCTS(self.game, model_, self.alpha, self.tau, self.num_search)
-            )
-            mcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
-            player = MCTSPlayer(mcts)
-            r = eval_player(player, init_player, self.game, self.num_game)
+            random_player = RandomPlayer(self.game)
+            nnet_player = NeuralNetPlayer(model)
+            r = eval_player(nnet_player, random_player, self.game, self.num_game)
             logging.info(f"average reward(v.s. random: {r}")
             if self.use_wandb:
                 wandb.log({"ave_reward": r})
