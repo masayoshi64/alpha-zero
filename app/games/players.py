@@ -53,7 +53,6 @@ class NeuralNetPlayer(Player):
     def play(self, board):
         p, v = self.model(torch.Tensor(get_board_view(board)))
         p = p[0].detach().numpy()
-        print(p)
         return np.argmax(p)
 
 
