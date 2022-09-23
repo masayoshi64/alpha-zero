@@ -29,7 +29,7 @@ def main():
     trainer = Trainer(game, **config)
     model = TicTacToeModel(game)
     model = trainer.train(model)
-    torch.save(model, "models/model.pt")
+    torch.save(model, "models/tictactoe_model.pt")
 
 
 if __name__ == "__main__":
