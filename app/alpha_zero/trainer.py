@@ -127,7 +127,7 @@ class Trainer:
 
             # new_modelに対して学習を行う
             new_model = copy.deepcopy(model)
-            optimizer = torch.optim.SGD(new_model.parameters(), self.lr)
+            optimizer = torch.optim.Adam(new_model.parameters(), self.lr)
             logging.info(len(experiences))
             dataset = AlphaZeroDataset(list(experiences))
             dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
