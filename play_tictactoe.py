@@ -4,7 +4,13 @@ import torch
 
 from app.games.arena import Arena
 from app.games.tictactoe import TicTacToeGame
-from app.games.players import RandomPlayer, HumanPlayer, MCTSPlayer, AlphaBetaPlayer
+from app.games.players import (
+    RandomPlayer,
+    HumanPlayer,
+    MCTSPlayer,
+    AlphaBetaPlayer,
+    NeuralNetPlayer,
+)
 from app.alpha_zero.mcts import MCTS
 
 
@@ -20,14 +26,17 @@ def main():
         player2 = RandomPlayer(game)
     elif player_type == "mcts":
         model = torch.load("models/model.pt")
-        mcts = MCTS(game, model, 0.1, 1, 10)
+        mcts = MCTS(game, model, 1, 0, 10)
         player2 = MCTSPlayer(mcts)
+    elif player_type == "nnet":
+        model = torch.load("models/model.pt")
+        player2 = NeuralNetPlayer(model)
     elif player_type == "alphabeta":
         player2 = AlphaBetaPlayer(game)
     else:
         raise ValueError(f"Invalid player type: {player_type}")
 
-    arena = Arena(player1, player2, game)
+    arena = Arena(player2, player1, game)
     arena.play_game(verbose=1)
 
 
