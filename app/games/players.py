@@ -1,8 +1,11 @@
 import numpy as np
+import torch.nn as nn
+import torch
 
 from .game import Game
 from ..alpha_zero.mcts import MCTS
 from .player_base import Player
+from ..alpha_zero.utils import get_board_view
 
 
 class RandomPlayer(Player):
@@ -41,6 +44,17 @@ class MCTSPlayer(Player):
 
     def reset(self):
         self.mcts.reset()
+
+
+class NeuralNetPlayer(Player):
+    def __init__(self, model: nn.Module):
+        self.model = model
+
+    def play(self, board):
+        p, v = self.model(torch.Tensor(get_board_view(board)))
+        p = p[0].detach().numpy()
+        print(p)
+        return np.argmax(p)
 
 
 class AlphaBetaPlayer(Player):
