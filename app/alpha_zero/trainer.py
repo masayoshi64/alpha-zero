@@ -154,7 +154,7 @@ class Trainer:
                 loss_v_ave /= cnt
                 logging.info(f"loss for p: {loss_p_ave}, loss for v: {loss_v_ave}")
                 if self.use_wandb:
-                    wandb.log({"loss": {loss_p_ave + loss_v_ave}})
+                    wandb.log({"loss": loss_p_ave + loss_v_ave})
 
             # modelと対戦時のnew_modelの平均報酬を計算
             pmcts = MCTS(self.game, model, self.alpha, self.tau, self.num_search)
