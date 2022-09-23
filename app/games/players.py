@@ -47,12 +47,16 @@ class MCTSPlayer(Player):
 
 
 class NeuralNetPlayer(Player):
-    def __init__(self, model: nn.Module):
+    def __init__(self, game: Game, model: nn.Module):
+        self.game = game
         self.model = model
 
     def play(self, board):
         p, v = self.model(torch.Tensor(get_board_view(board)))
         p = p[0].detach().numpy()
+        for a in range(self.game.get_action_size()):
+            if not self.game.is_valid(board, 1, a):
+                p[a] = 0
         return np.argmax(p)
 
 

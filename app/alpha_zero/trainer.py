@@ -175,7 +175,7 @@ class Trainer:
 
             # 学習前のモデルを用いたmctsと対戦させ評価
             random_player = RandomPlayer(self.game)
-            nnet_player = NeuralNetPlayer(model)
+            nnet_player = NeuralNetPlayer(self.game, model)
             r = eval_player(nnet_player, random_player, self.game, self.num_game)
             logging.info(f"average reward(v.s. random: {r}")
             if self.use_wandb:
