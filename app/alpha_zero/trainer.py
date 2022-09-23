@@ -39,10 +39,12 @@ class Trainer:
         self,
         game: Game,
         num_iter: int,
+        buffer_size: int,
         num_episode: int,
         num_epoch: int,
         num_game: int,
         lr: float,
+        batch_size: int,
         r_thresh: float,
         alpha: float,
         tau: float,
@@ -65,10 +67,12 @@ class Trainer:
         """
         self.game = game
         self.num_iter = num_iter
+        self.buffer_size = buffer_size
         self.num_episode = num_episode
         self.num_epoch = num_epoch
         self.num_game = num_game
         self.lr = lr
+        self.batch_size = batch_size
         self.r_thresh = r_thresh
         self.alpha = alpha
         self.tau = tau
@@ -119,7 +123,7 @@ class Trainer:
             nn.Module: 学習済みモデル
         """
         model = copy.deepcopy(model_)
-        experiences = deque(maxlen=30000)
+        experiences = deque(maxlen=self.buffer_size)
         for i in tqdm(range(self.num_iter)):
             # 自己対戦を行う
             for episode in range(self.num_episode):
@@ -130,7 +134,7 @@ class Trainer:
             optimizer = torch.optim.Adam(new_model.parameters(), self.lr)
             logging.info(len(experiences))
             dataset = AlphaZeroDataset(list(experiences))
-            dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
+            dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
             for epoch in range(self.num_epoch):
                 loss_p_ave = 0
                 loss_v_ave = 0

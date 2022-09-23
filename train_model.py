@@ -11,9 +11,11 @@ from app.games.tictactoe import TicTacToeGame
 def main():
     config = {
         "num_iter": 20,
+        "buffer_size": 30000,
         "num_episode": 500,
         "num_epoch": 100,
         "num_game": 100,
+        "batch_size": 100,
         "lr": 0.002,
         "r_thresh": 0,
         "alpha": 0.1,
