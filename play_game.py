@@ -36,8 +36,8 @@ def main():
         mcts = MCTS(game, model, 0.1, 0, 50)
         player2 = MCTSPlayer(mcts)
     elif player_type == "nnet":
-        model = torch.load(f"models/model_{game_type}.pt")
-        player2 = NeuralNetPlayer(model)
+        model = torch.load(f"models/{game_type}_model.pt")
+        player2 = NeuralNetPlayer(game, model)
     elif player_type == "alphabeta":
         player2 = AlphaBetaPlayer(game)
     else:

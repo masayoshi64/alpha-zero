@@ -45,6 +45,7 @@ class Arena:
             )
             # 合法種でなければエラー
             if not self.game.is_valid(board, cur_player, action):
+                logging.error(f"player: {cur_player}, board: {board}")
                 logging.error(f"Action {action} is not valid")
                 assert self.game.is_valid(board, cur_player, action)
 

@@ -65,3 +65,33 @@ class TicTacToeModel(nn.Module):
         v = self.fc_v(x)
         v = self.tanh(v)
         return p, v
+
+
+class ReversiModel(nn.Module):
+    def __init__(self, game: Game, **args):
+        super().__init__()
+        self.height = game.get_height()
+        self.width = game.get_width()
+        self.action_size = game.get_action_size()
+        hidden_size = 100
+        self.fc1 = nn.Linear(self.height * self.width * 2, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.fc3 = nn.Linear(hidden_size, hidden_size)
+        self.fc_p = nn.Linear(hidden_size, self.action_size)
+        self.fc_v = nn.Linear(hidden_size, 1)
+        self.softmax = nn.Softmax(dim=1)
+        self.tanh = nn.Tanh()
+
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        x = x.view(-1, self.height * self.width * 2)
+        x = self.fc1(x)
+        x = nn.ReLU()(x)
+        x = self.fc2(x)
+        x = nn.ReLU()(x)
+        x = self.fc3(x)
+        x = nn.ReLU()(x)
+        p = self.fc_p(x)
+        p = self.softmax(p)
+        v = self.fc_v(x)
+        v = self.tanh(v)
+        return p, v
